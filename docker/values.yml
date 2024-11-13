@@ -1,0 +1,62 @@
+# Default values for buff-app.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+env: "prod"
+replicaCount: 2
+fullnameOverride: lol-api
+image:
+  repository: k-harbor.buffge.com/buff/lol-api
+  tag: "v3"
+
+service:
+  type: ClusterIP
+  port: 80
+
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: $1
+    nginx.ingress.kubernetes.io/use-regex: 'true'
+  hosts:
+    - host: k2-api.buffge.com
+      paths:
+        - path: /prod/lol(.*)
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: buffge.com-tls
+      hosts:
+        - k2-api.buffge.com
+
+resources:
+  limits:
+    cpu: '2'
+    memory: 200Mi
+  requests:
+    cpu: '0.1'
+    memory: 180Mi
+
+livenessProbe:
+  initialDelaySeconds: 2
+  httpGet:
+    path: /status
+    port: http
+readinessProbe:
+  initialDelaySeconds: 2
+  httpGet:
+    path: /status
+    port: http
+
+serviceMonitor:
+  enabled: true
+  port: http
+  path: /metrics
+  interval: 15s
+volumeMounts:
+  - mountPath: /work/config
+    name: cfg
+volumes:
+  - name: cfg
+    configMap:
+      name: lol-api-cfg

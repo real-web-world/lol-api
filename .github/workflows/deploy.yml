@@ -1,0 +1,61 @@
+name: deploy
+run-name: deploy
+concurrency:
+  group: ci-${{ github.repositoryUrl }}
+  cancel-in-progress: true
+on:
+  push:
+    branches:
+      - main
+jobs:
+  releaseApp:
+    runs-on: arc-runner-set
+    permissions:
+      contents: read
+      packages: write
+    env:
+      DINGTALK_ACCESS_TOKEN: ${{ secrets.DINGTALK_ACCESS_TOKEN }}
+      DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - name: install go deps
+        env:
+          GOPROXY: https://goproxy.buffge.com,direct
+        run: |
+          go mod tidy
+      - name: go build
+        run: |
+          export BUILD_USER='${{github.actor}}'
+          make build
+      - name: upx
+        run: |
+          make upx
+      - name: Docker login
+        run: sudo nerdctl login -u ${{ secrets.HARBOR_NAME }} -p ${{ secrets.HARBOR_PWD }} ${{ secrets.REGISTRY}}
+      - name: Build Docker image
+        run: sudo nerdctl -n k8s.io build -t ${{ secrets.REGISTRY}}/buff/lol-api:${{ github.sha }} .
+      - name: Push Docker image
+        run: |
+          sudo nerdctl -n k8s.io push ${{ secrets.REGISTRY}}/buff/lol-api:${{ github.sha }}
+      - name: helm upgrade
+        run: |
+          helm upgrade -i lol-api  oci://k-harbor.buffge.com/library/buff-app  --atomic --timeout 30s -n buff -f ./docker/values.yml --set image.tag=${{ github.sha }}
+      - uses: buffge/dingtalk-action@34743c736212579f8ff99d2dca75879b56371796
+        if: ${{ success() }}
+        with:
+          msgtype: markdown
+          title: " lol-api 成功"
+          text: |
+            **<font color=#54aeff size=4>az-lol 构建成功</font>**
+            
+            **<font size=4>commitMsg: ${{ github.event.head_commit.message }}</font>**
+      - uses: buffge/dingtalk-action@34743c736212579f8ff99d2dca75879b56371796
+        if: ${{ failure() }}
+        with:
+          msgtype: markdown
+          title: "lol-api 失败"
+          text: |
+            **<font color=#cf222e size=4>az-lol 构建失败</font>**
+
+            **<font size=4>commitMsg: ${{ github.event.head_commit.message }}</font>**
