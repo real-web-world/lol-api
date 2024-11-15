@@ -9,6 +9,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.20.5
+	github.com/real-web-world/bdk v0.0.0-20241115152109-eb76e99ebfdc
 	go.uber.org/zap v1.27.0
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/gorm v1.25.12
@@ -19,8 +20,6 @@ require (
 	github.com/grafana/pyroscope-go v1.2.0
 	github.com/jinzhu/configor v1.2.2
 	github.com/joho/godotenv v1.5.1
-	github.com/opentracing/opentracing-go v1.2.0
-	github.com/real-web-world/bdk v0.0.0-20241115065706-a7361c11c6da
 	github.com/redis/go-redis/extra/redisotel/v9 v9.7.0
 	github.com/redis/go-redis/v9 v9.7.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.57.0
