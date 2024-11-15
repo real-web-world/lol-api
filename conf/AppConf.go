@@ -1,28 +1,19 @@
 package conf
 
-import (
-	"github.com/real-web-world/lol-api/pkg/logger"
-)
-
 type (
 	AppConf struct {
-		ProjectName string        `json:"projectName"`
+		ProjectName string        `json:"projectName" required:"true"`
 		HTTPHost    string        `json:"host" default:"0.0.0.0" env:"httpHost"`
 		HTTPPort    int           `json:"port" default:"8888"`
 		Mode        string        `json:"mode" default:"release" env:"Mode"`
 		Pyroscope   PyroscopeConf `json:"pyroscope"`
-		Sentry      SentryConf    `json:"sentry"`
 		Lang        LangConf      `json:"lang"`
 		PProf       PProfConf     `json:"pprof"`
 		Log         LogConf       `json:"log" required:"true"`
-		Caller      string        `json:"caller" required:"true"`
 		Redis       RedisConf     `json:"redis" required:"true"`
 		Mysql       MysqlConf     `json:"mysql" required:"true"`
-		Trace       TraceConf     `json:"trace" required:"true"`
-		ProcDev     ProcDev       `json:"procDev"`
-		Async       AsyncConf     `json:"asyncConf"`
+		Otel        OtelConf      `json:"otel" required:"true"`
 	}
-
 	PyroscopeConf struct {
 		Enabled       bool   `json:"enabled" default:"true"`
 		AppName       string `json:"appName"`
@@ -41,44 +32,31 @@ type (
 		Default MysqlItemConf `json:"default" required:"true"`
 	}
 	MysqlItemConf struct {
-		Type        string `default:"mysql"`
-		Host        string `required:"true"`
-		Port        int    `required:"true"`
-		UserName    string `required:"true"`
-		Pwd         string `required:"true"`
-		Charset     string `default:"utf8mb4"`
-		Database    string `required:"true"`
-		Prefix      string
-		MaxIDleConn int `default:"10"`
-		MaxOpenConn int `default:"100"`
-		MaxLifeTime int `default:"60"`
+		Host               string `json:"host" required:"true"`
+		Port               int    `json:"port" required:"true"`
+		UserName           string `json:"userName" required:"true"`
+		Pwd                string `json:"pwd" required:"true"`
+		Charset            string `json:"charset" default:"utf8mb4"`
+		Database           string `json:"database" required:"true"`
+		Prefix             string `json:"prefix"`
+		MaxIDleConn        int    `json:"maxIDleConn" default:"10"`
+		MaxOpenConn        int    `json:"maxOpenConn" default:"100"`
+		MaxLifeTimeMinutes int    `json:"maxLifeTimeMinutes" default:"60"`
 	}
 	RedisConf struct {
 		Default RedisItemConf `json:"default" required:"true"`
 	}
-	AsyncConf struct {
-		UpdateTicketSecond int `json:"updateTicketSecond" default:"5"`
-	}
-	TraceConf struct {
-		Enabled    bool   `json:"enabled" default:"false"`
-		ServerName string `json:"serverName" required:"true"`
-		JaegerAddr string `json:"jaegerAddr" required:"true" env:"jaegerAddr"`
-	}
-	SentryConf struct {
-		Enabled bool `json:"enabled" default:"true"`
-		Dsn     string
+	OtelConf struct {
+		Enabled  bool   `json:"enabled" default:"false"`
+		Endpoint string `json:"endpoint" required:"true"`
 	}
 	LangConf struct {
 		DefaultLang string `default:"zh" env:"defaultLang"`
 	}
 	PProfConf struct {
-		Enabled bool   `default:"false" env:"enablePProf" json:"enabled"`
-		Addr    string `json:"addr" default:":8889" env:"pprofAddr"`
+		Enabled bool `default:"false" json:"enabled"`
 	}
 	LogConf struct {
-		Level logger.LogLevelStr `json:"level" default:"info" env:"logLevel"`
-	}
-	ProcDev struct {
-		AddDays int `json:"addDays" default:"0"`
+		Level string `json:"level" default:"info" env:"logLevel"`
 	}
 )

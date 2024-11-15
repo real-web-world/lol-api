@@ -3,9 +3,9 @@ package models
 import (
 	"context"
 	"encoding/json"
-	"github.com/real-web-world/lol-api/pkg/fastcurd"
-	"golang.org/x/sync/errgroup"
 
+	"github.com/real-web-world/bdk/fastcurd"
+	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 )
 

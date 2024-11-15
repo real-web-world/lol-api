@@ -4,13 +4,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/real-web-world/lol-api/pkg/bdk"
-
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-
-	"github.com/real-web-world/lol-api/pkg/gin"
+	"github.com/real-web-world/bdk"
+	ginApp "github.com/real-web-world/bdk/gin"
 )
 
 var (

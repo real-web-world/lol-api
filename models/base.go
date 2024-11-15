@@ -6,9 +6,8 @@ import (
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
-
 	"github.com/real-web-world/lol-api/global"
+	"gorm.io/gorm"
 )
 
 var (

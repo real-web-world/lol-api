@@ -3,9 +3,9 @@ package models
 import (
 	"context"
 	"encoding/json"
-	"github.com/real-web-world/lol-api/pkg/fastcurd"
-	"golang.org/x/sync/errgroup"
 
+	"github.com/real-web-world/bdk/fastcurd"
+	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 )
 
@@ -31,7 +31,9 @@ type (
 )
 
 const (
-	ClientConfDbID = 1
+	ClientConfDbID = iota + 1
+	CurrVersionDbID
+	DownloadUrlPrefixDbID
 )
 
 func NewDefaultSceneConfig(m *Config) map[string]any {
@@ -214,4 +216,10 @@ func (m *Config) ListRecord(page int, limit int, filter fastcurd.Filter, order m
 
 func (m *Config) GetClientConf() (*Config, error) {
 	return m.GetDetailByID(ClientConfDbID)
+}
+func (m *Config) GetCurrVersion() (*Config, error) {
+	return m.GetDetailByID(CurrVersionDbID)
+}
+func (m *Config) GetDownloadUrlPrefix() (*Config, error) {
+	return m.GetDetailByID(DownloadUrlPrefixDbID)
 }

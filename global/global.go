@@ -1,14 +1,17 @@
 package global
 
 import (
+	"context"
+	"log"
+	"os"
+	"sync"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	_ "gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"log"
-	"os"
-	"sync"
 
 	"github.com/real-web-world/lol-api/conf"
 )
@@ -18,7 +21,6 @@ const (
 )
 
 const (
-	FaviconReq         = "/favicon"
 	VersionApi         = "/version"
 	MetricsApi         = "/metrics"
 	StatusApi          = "/status"
@@ -28,20 +30,17 @@ const (
 	GormTraceOpNameKey = "gormTraceOpName"
 	//RedisTraceOpNameKey = "redisTraceOpName"
 	//HttpTraceOpNameKey  = "httpTraceOpName"
-	envKey              = "Mode"
 	LogWriterCleanupKey = "logWriter"
 	ZapLoggerCleanupKey = "zapLogger"
 	JaegerCleanupKey    = "jaeger"
 )
 
 var (
-	Conf          = &conf.AppConf{}
-	ValidFuncList []func()
-	Logger        *zap.SugaredLogger
+	Conf   = &conf.AppConf{}
+	Logger *zap.SugaredLogger
 	// JaegerHttpRT  = otelhttp.NewTransport(http.DefaultTransport)
-	Cleanups   = make(map[string]func() error)
+	Cleanups   = make(map[string]func(ctx context.Context) error)
 	cleanupsMu = sync.Mutex{}
-	currEnv    *string
 )
 
 // Redis
@@ -56,36 +55,31 @@ var (
 )
 
 func IsDevMode() bool {
-	return !IsProdMode()
+	return Conf.Mode == gin.DebugMode
 }
 func IsProdMode() bool {
-	return GetEnv() == gin.ReleaseMode
+	return !IsDevMode()
 }
 func IsLocalDev() bool {
 	return os.Getenv(LocalDevKey) == "true"
 }
 
-func GetEnv() string {
-	if currEnv == nil {
-		currEnv = new(string)
-		*currEnv = os.Getenv(envKey)
-	}
-	return *currEnv
-}
 func Cleanup() {
+	ctx, cancel := context.WithTimeout(context.TODO(), time.Second*5)
+	defer cancel()
 	for name, cleanup := range Cleanups {
 		if name == LogWriterCleanupKey {
 			continue
 		}
-		if err := cleanup(); err != nil {
+		if err := cleanup(ctx); err != nil {
 			log.Printf("%s cleanup err:%v\n", name, err)
 		}
 	}
 	if fn, ok := Cleanups[LogWriterCleanupKey]; ok {
-		_ = fn()
+		_ = fn(ctx)
 	}
 }
-func SetCleanup(name string, fn func() error) {
+func SetCleanup(name string, fn func(ctx context.Context) error) {
 	cleanupsMu.Lock()
 	Cleanups[name] = fn
 	cleanupsMu.Unlock()

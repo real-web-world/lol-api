@@ -3,30 +3,24 @@ package mysql
 import (
 	"context"
 	"fmt"
-	gormLogger "gorm.io/gorm/logger"
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/real-web-world/bdk/logger"
+	"github.com/real-web-world/lol-api/conf"
+	"github.com/real-web-world/lol-api/global"
 	"golang.org/x/sync/errgroup"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	gormLogger "gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
-
-	"github.com/real-web-world/lol-api/conf"
-	"github.com/real-web-world/lol-api/global"
-	"github.com/real-web-world/lol-api/pkg/logger"
 	"gorm.io/plugin/opentelemetry/tracing"
-)
-
-var (
-// spanCtxKey         = global.SpanCtxKey
-// gormTraceOpNameKey = global.GormTraceOpNameKey
 )
 
 func Init(ctx context.Context, cfg *conf.MysqlConf, isDebug bool) error {
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
-		db, err := initDb(cfg.Default, "default", isDebug)
+		db, err := initDb(ctx, cfg.Default, "default", isDebug)
 		if err != nil {
 			return err
 		}
@@ -35,7 +29,7 @@ func Init(ctx context.Context, cfg *conf.MysqlConf, isDebug bool) error {
 	})
 	return g.Wait()
 }
-func initDb(cfg conf.MysqlItemConf, name string, isDebug bool) (*gorm.DB, error) {
+func initDb(ctx context.Context, cfg conf.MysqlItemConf, name string, isDebug bool) (*gorm.DB, error) {
 	var l = logger.GormLogger
 	if isDebug {
 		l = l.LogMode(gormLogger.Info)
@@ -61,11 +55,11 @@ func initDb(cfg conf.MysqlItemConf, name string, isDebug bool) (*gorm.DB, error)
 	}
 	err = db.Use(tracing.NewPlugin())
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("init %s db trace failed", name))
+		return nil, errors.Wrap(err, fmt.Sprintf("init %s db otel failed", name))
 	}
 	sqlDB, _ := db.DB()
 	sqlDB.SetMaxIdleConns(cfg.MaxIDleConn)
 	sqlDB.SetMaxOpenConns(cfg.MaxOpenConn)
-	sqlDB.SetConnMaxLifetime(time.Duration(cfg.MaxLifeTime) * time.Minute)
-	return db, nil
+	sqlDB.SetConnMaxLifetime(time.Duration(cfg.MaxLifeTimeMinutes) * time.Minute)
+	return db, sqlDB.PingContext(ctx)
 }

@@ -4,14 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/real-web-world/lol-api/bootstrap"
-	"github.com/real-web-world/lol-api/global"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/real-web-world/lol-api/bootstrap"
+	"github.com/real-web-world/lol-api/global"
 )
 
 func main() {
@@ -32,7 +33,7 @@ func main() {
 			log.Fatalf("listen: %s\n", err)
 		}
 	}()
-	log.Printf("初始化app成功,env:%s,耗时%v\n", global.GetEnv(), time.Since(begin))
+	log.Printf("初始化app成功,env:%s,耗时%v\n", global.Conf.Mode, time.Since(begin))
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
