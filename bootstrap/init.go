@@ -5,7 +5,6 @@ import (
 	"context"
 	"log"
 	"net/http"
-	_ "net/http/pprof"
 	"os"
 	"runtime"
 	"time"
@@ -24,7 +23,7 @@ import (
 	"github.com/real-web-world/bdk/valid"
 	"github.com/real-web-world/lol-api/conf"
 	"github.com/real-web-world/lol-api/global"
-	mid "github.com/real-web-world/lol-api/middleware"
+	"github.com/real-web-world/lol-api/middleware"
 	"github.com/real-web-world/lol-api/routes"
 	"github.com/real-web-world/lol-api/services/logger"
 	"github.com/real-web-world/lol-api/services/mysql"
@@ -86,24 +85,24 @@ func initCache(ctx context.Context) error {
 func initEngine() *gin.Engine {
 	gin.SetMode(global.Conf.Mode)
 	engine := bdkgin.NewGin()
-	engine.Use(gin.LoggerWithConfig(gin.LoggerConfig{
-		Formatter: bdkgin.LogFormatter,
-		Output:    log.Writer(),
-	}))
 	binding.Validator = &valid.DefaultValidator{}
 	return engine
 }
 func initMiddleware(e *gin.Engine) {
 	Conf := global.Conf
-	e.Use(bdkmid.NewErrHandler(logger.Error))
-	e.Use(mid.Prometheus)
+	e.Use(bdkmid.RecoveryWithLogFn(logger.Error))
+	//e.Use(gin.LoggerWithConfig(gin.LoggerConfig{
+	//	Formatter: bdkgin.LogFormatter,
+	//	Output:    log.Writer(),
+	//}))
+	e.Use(middleware.Prometheus)
 	if Conf.Otel.Enabled {
 		e.Use(otelgin.Middleware(Conf.ProjectName, otelgin.WithFilter(func(request *http.Request) bool {
 			return !bdk.IsSkipLogReq(request, http.StatusOK)
 		})))
 	}
-	e.Use(mid.Cors(Conf))
-	e.Use(bdkmid.NewHttpTrace(logger.Info))
+	e.Use(middleware.Cors(Conf))
+	e.Use(bdkmid.NewHttpTraceWithDefaultNotTrace(logger.Info))
 }
 func InitApp() (*gin.Engine, error) {
 	var err error

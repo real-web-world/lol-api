@@ -40,16 +40,17 @@ var (
 func Prometheus(c *gin.Context) {
 	app := ginApp.GetApp(c)
 	startProcTime := app.GetProcBeginTime()
-	path := c.Request.URL.Path
+
 	isSkipLog := bdk.IsSkipLogReq(c.Request, http.StatusOK)
 	if !isSkipLog {
-		go httpReqInFlight.Inc()
+		httpReqInFlight.Inc()
 		defer httpReqInFlight.Dec()
 	}
 	c.Next()
 	if c.Writer.Status() == http.StatusNotFound || isSkipLog {
 		return
 	}
+	path := c.Request.URL.Path
 	httpReqTotal.WithLabelValues(path).Inc()
 	httpReqDurationMillisecond.WithLabelValues(path).
 		Observe(float64(time.Since(*startProcTime).Milliseconds()))

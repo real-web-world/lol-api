@@ -12,7 +12,7 @@ func initAPIRoutes(r *gin.Engine) {
 }
 
 func initV1Module(r *gin.Engine) {
-	lol := r.Group("lol")
+	lol := r.Group("lol", bdkmid.Trace)
 	lol.POST("getCurrVersion", api.GetCurrVersion) // 获取当前版本和下载信息
 	lolClient := lol.Group("client")
 	lolClient.POST("getConf", api.GetClientConf) // 获取客户端配置
