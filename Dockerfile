@@ -5,10 +5,11 @@ ENV GOPROXY=https://goproxy.buffge.com,direct
 ARG buildUser
 ARG buildTime
 ARG commitID
-COPY /home/runner/.cache/go-build /root/.cache/go-build
-COPY . /work
 WORKDIR /work
-RUN  go mod tidy && go generate ./... && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags=sonic \
+ENV GOCACHE=/root/.cache/go-build
+COPY . .
+RUN  --mount=type=bind,source=/home/runner/.cache/go-build,target=/root/.cache/go-build,rw \
+     go mod tidy && go generate ./... && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags=sonic \
      -trimpath -ldflags "-s -w \
      -extldflags "-static" \
      -X github.com/real-web-world/lol-api.Commit=${commitID} \
