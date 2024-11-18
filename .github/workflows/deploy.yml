@@ -23,16 +23,16 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - name: Set env
+        run: |
+          echo "BUILD_TIME=$(TZ="Asia/Shanghai" date '+%Y-%m-%d_%H:%M:%S-%Z')" >> $GITHUB_ENV
       - name: Build Docker image
         run: |
-          BUILD_TIME=`TZ="Asia/Shanghai" date '+%Y-%m-%d_%H:%M:%S-%Z'`
-          echo $BUILD_TIME
-          echo "BUILD_TIME=$BUILD_TIME" >> $GITHUB_ENV
-          sudo nerdctl -n k8s.io build -t ${{ secrets.REGISTRY}}${{env.REGISTRY_PKG_PATH}}:${{ github.sha }} . \
-            --build-arg buildUser='${{github.actor}}' \ 
-            --build-arg buildTime='$BUILD_TIME' \ 
-            --build-arg commitID='${{github.sha}}' \ 
-            --build-arg commitMsg='${{ github.event.head_commit.message }}'
+          sudo nerdctl -n k8s.io build -t ${{ secrets.REGISTRY}}${{env.REGISTRY_PKG_PATH}}:${{ github.sha }} \
+            --build-arg buildUser='${{github.actor}}' \
+            --build-arg buildTime='${{env.BUILD_TIME}}' \
+            --build-arg commitID='${{github.sha}}' \
+            --build-arg commitMsg='${{ github.event.head_commit.message }}' .
         shell: bash
       - name: Docker login
         run: sudo nerdctl login -u ${{ secrets.HARBOR_NAME }} -p ${{ secrets.HARBOR_PWD }} ${{ secrets.REGISTRY}}
