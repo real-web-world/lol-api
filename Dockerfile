@@ -4,6 +4,7 @@ FROM k-harbor.buffge.com/dk/library/golang@sha256:865d971152033de755444aaa5f6cb8
 ENV GOSUMDB=off
 ENV GOPROXY=https://goproxy.buffge.com,direct
 ENV GOCACHE=/root/.cache/go-build
+ENV GOMODCACHE=/go/pkg/mod
 
 ARG buildUser
 ARG buildTime
@@ -13,7 +14,8 @@ WORKDIR /work
 
 COPY go.mod .
 COPY go.sum .
-RUN  go mod download
+RUN  --mount=type=cache,id=go-mod-cache,target=/go/pkg/mod,rw \
+     go mod download
 
 COPY . .
 RUN  --mount=type=cache,id=go-build-cache,target=/root/.cache/go-build,rw \
