@@ -10,7 +10,7 @@ COPY . /work
 WORKDIR /work
 RUN  go mod tidy && go generate ./... && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags=sonic \
      -trimpath -ldflags "-s -w \
-     -extldflags "-static"
+     -extldflags "-static" \
      -X github.com/real-web-world/lol-api.Commit=${commitID} \
      -X github.com/real-web-world/lol-api.BuildTime=${buildTime} \
      -X github.com/real-web-world/lol-api.BuildUser=${buildUser} \
