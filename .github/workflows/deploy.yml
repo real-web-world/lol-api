@@ -30,7 +30,7 @@ jobs:
           echo "BUILD_TIME=$BUILD_TIME" >> $GITHUB_ENV
           sudo nerdctl -n k8s.io build -t ${{ secrets.REGISTRY}}${{env.REGISTRY_PKG_PATH}}:${{ github.sha }} \
             --build-arg buildUser='${{github.actor}}' \ 
-            --build-arg buildTime='${{env.BUILD_TIME}}' \ 
+            --build-arg buildTime='$BUILD_TIME' \ 
             --build-arg commitID='${{github.sha}}' \ 
             --build-arg commitMsg='${{ github.event.head_commit.message }}' \ 
             .
