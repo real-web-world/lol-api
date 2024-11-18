@@ -1,17 +1,17 @@
-#FROM k-harbor.buffge.com/dk/library/golang:1.23.0-alpine3.20 as builder
-FROM k-harbor.buffge.com/dk/library/golang@sha256:fc53f0647c40f9c5239044f0602398154bcb33a4399fb4e1f3899859d0fe4c38 as builder
+#FROM k-harbor.buffge.com/dk/library/golang:1.23.3-alpine as builder
+FROM k-harbor.buffge.com/dk/library/golang@sha256:865d971152033de755444aaa5f6cb8f91c8408020e91e1457205a1f93896d9b1 as builder
 ENV GOSUMDB=off
 ENV GOPROXY=https://goproxy.buffge.com,direct
 ARG buildUser
 ARG buildTime
 ARG commitID
-
-
+COPY /home/runner/.cache/go-build /root/.cache/go-build
 COPY . /work
 WORKDIR /work
 RUN  go mod tidy && go generate ./... && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags=sonic \
      -trimpath -ldflags "-s -w \
-     -extldflags "-static" -X github.com/real-web-world/lol-api.Commit=${commitID} \
+     -extldflags "-static"
+     -X github.com/real-web-world/lol-api.Commit=${commitID} \
      -X github.com/real-web-world/lol-api.BuildTime=${buildTime} \
      -X github.com/real-web-world/lol-api.BuildUser=${buildUser} \
      " -o bin/lol-api cmd/lol-api/main.go
