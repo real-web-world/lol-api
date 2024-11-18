@@ -16,31 +16,31 @@ jobs:
     env:
       DINGTALK_ACCESS_TOKEN: ${{ secrets.DINGTALK_ACCESS_TOKEN }}
       DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
+      REGISTRY_PKG_PATH: /buff/lol-api
+      HELM_PKG: oci://k-harbor.buffge.com/library/buff-app
+      HELM_RELEASE_MAME: lol-api
+      K8S_NS: buff
     steps:
       - name: Check out repository code
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
-      - name: install go deps
-        env:
-          GOPROXY: https://goproxy.buffge.com,direct
+      - name: Build Docker image
         run: |
-          go mod tidy
-      - name: go build
-        run: |
-          export BUILD_USER='${{github.actor}}'
-          make build
-      - name: upx
-        run: |
-          make upx
+          export BUILD_TIME=`TZ="Asia/Shanghai" date '+%Y-%m-%d_%H:%M:%S-%Z'`
+          sudo nerdctl -n k8s.io build -t ${{ secrets.REGISTRY}}${{env.REGISTRY_PKG_PATH}}:${{ github.sha }} \
+            --build-arg buildUser='${{github.actor}}' \ 
+            --build-arg buildTime='${{env.BUILD_TIME}}' \ 
+            --build-arg commitID='${{github.sha}}' \ 
+            --build-arg commitMsg='${{ github.event.head_commit.message }}' \ 
+            .
       - name: Docker login
         run: sudo nerdctl login -u ${{ secrets.HARBOR_NAME }} -p ${{ secrets.HARBOR_PWD }} ${{ secrets.REGISTRY}}
-      - name: Build Docker image
-        run: sudo nerdctl -n k8s.io build -t ${{ secrets.REGISTRY}}/buff/lol-api:${{ github.sha }} .
       - name: Push Docker image
         run: |
-          sudo nerdctl -n k8s.io push ${{ secrets.REGISTRY}}/buff/lol-api:${{ github.sha }}
+          sudo nerdctl -n k8s.io push ${{ secrets.REGISTRY}}${{env.REGISTRY_PKG_PATH}}:${{ github.sha }}
       - name: helm upgrade
         run: |
-          helm upgrade -i lol-api  oci://k-harbor.buffge.com/library/buff-app  --atomic --timeout 30s -n buff -f ./docker/values.yml --set image.tag=${{ github.sha }}
+          helm upgrade -i ${{env.HELM_RELEASE_MAME}}  ${{env.HELM_PKG}}  --atomic --timeout 30s \
+          --set image.tag=${{ github.sha }} -f ./docker/values.yml -n ${{env.K8S_NS}}
       - uses: buffge/dingtalk-action@34743c736212579f8ff99d2dca75879b56371796
         if: ${{ success() }}
         with:
