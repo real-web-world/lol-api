@@ -1,4 +1,5 @@
 FROM k-harbor.buffge.com/dk/library/golang:1.23.3-alpine as builder
+ENV GOSUMDB=off
 ENV GOPROXY=https://goproxy.buffge.com,direct
 ARG buildUser
 ARG buildTime

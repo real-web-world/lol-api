@@ -31,7 +31,7 @@ jobs:
             --build-arg buildTime='${{env.BUILD_TIME}}' \ 
             --build-arg commitID='${{github.sha}}' \ 
             --build-arg commitMsg='${{ github.event.head_commit.message }}' \ 
-            .
+            -f ./Dockerfile .
       - name: Docker login
         run: sudo nerdctl login -u ${{ secrets.HARBOR_NAME }} -p ${{ secrets.HARBOR_PWD }} ${{ secrets.REGISTRY}}
       - name: Push Docker image
