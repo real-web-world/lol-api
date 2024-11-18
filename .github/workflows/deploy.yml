@@ -25,8 +25,8 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
       - name: Build Docker image
         run: |
-          pwd
-          sudo export BUILD_TIME=`TZ="Asia/Shanghai" date '+%Y-%m-%d_%H:%M:%S-%Z'`
+          BUILD_TIME=`TZ="Asia/Shanghai" date '+%Y-%m-%d_%H:%M:%S-%Z'`
+          echo "BUILD_TIME=$BUILD_TIME" >> $GITHUB_ENV
           sudo nerdctl -n k8s.io build \
             --build-arg buildUser='${{github.actor}}' \ 
             --build-arg buildTime='${{env.BUILD_TIME}}' \ 
