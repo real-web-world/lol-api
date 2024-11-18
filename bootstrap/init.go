@@ -155,12 +155,12 @@ func initSdk(ctx context.Context) error {
 		if err != nil {
 			err = errors.WithMessage(err, "初始化otel失败")
 		} else {
-			global.SetCleanup("otel", shutdown)
+			global.SetCleanup(global.OtelCleanupKey, shutdown)
 		}
 		return err
 	})
 	g.Go(func() error {
-		if global.Conf.Pyroscope.Enabled {
+		if !global.Conf.Pyroscope.Enabled {
 			return nil
 		}
 		if err := initPyroscope(global.Conf.Pyroscope); err != nil {
@@ -172,22 +172,19 @@ func initSdk(ctx context.Context) error {
 }
 
 func initPyroscope(cfg conf.PyroscopeConf) error {
+	if global.IsLocalDev() {
+		return nil
+	}
 	runtime.SetMutexProfileFraction(5)
 	runtime.SetBlockProfileRate(5)
 	mode := global.Conf.Mode
-	isLocal := global.IsLocalDev()
-	isLocalStr := "false"
-	if isLocal {
-		isLocalStr = "true"
-	}
 	_, err := pyroscope.Start(pyroscope.Config{
-		ApplicationName: mode + "_" + cfg.AppName,
+		ApplicationName: cfg.AppName,
 		ServerAddress:   cfg.ServerAddress,
 		Logger:          nil,
 		Tags: map[string]string{
-			"buff.hostname": os.Getenv("HOSTNAME"),
-			"buff.env":      mode,
-			"buff.isLocal":  isLocalStr,
+			"buff_hostname": os.Getenv("HOSTNAME"),
+			"buff_env":      mode,
 		},
 		ProfileTypes: []pyroscope.ProfileType{
 			// these profile types are enabled by default:

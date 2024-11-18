@@ -21,18 +21,9 @@ const (
 )
 
 const (
-	VersionApi         = "/version"
-	MetricsApi         = "/metrics"
-	StatusApi          = "/status"
-	DebugApiPrefix     = "/debug"
-	SwaggerApiPrefix   = "/swagger"
-	SpanCtxKey         = "spanCtx"
-	GormTraceOpNameKey = "gormTraceOpName"
-	//RedisTraceOpNameKey = "redisTraceOpName"
-	//HttpTraceOpNameKey  = "httpTraceOpName"
 	LogWriterCleanupKey = "logWriter"
 	ZapLoggerCleanupKey = "zapLogger"
-	JaegerCleanupKey    = "jaeger"
+	OtelCleanupKey      = "otel"
 )
 
 var (
