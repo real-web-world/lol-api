@@ -147,9 +147,8 @@ func initLib(_ context.Context) error {
 func initSdk(ctx context.Context) error {
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
-		if global.Conf.Otel.Enabled {
+		if !global.Conf.Otel.Enabled {
 			return nil
-
 		}
 		shutdown, err := otel.InitOtel(ctx)
 		if err != nil {
