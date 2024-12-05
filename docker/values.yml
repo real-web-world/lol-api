@@ -16,6 +16,9 @@ ingress:
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: $1
     nginx.ingress.kubernetes.io/use-regex: 'true'
+    nginx.ingress.kubernetes.io/limit-connections: 20
+    nginx.ingress.kubernetes.io/limit-rpm: 200
+    nginx.ingress.kubernetes.io/limit-whitelist: 10.20.0.0/16,192.168.0.0/16,127.0.0.0/8
   hosts:
     - host: k2-api.buffge.com
       paths:
