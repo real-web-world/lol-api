@@ -1,8 +1,9 @@
-package mysql
+package pgsql
 
 import (
 	"context"
 	"fmt"
+	"gorm.io/driver/postgres"
 	"time"
 
 	"github.com/pkg/errors"
@@ -10,14 +11,13 @@ import (
 	"github.com/real-web-world/lol-api/conf"
 	"github.com/real-web-world/lol-api/global"
 	"golang.org/x/sync/errgroup"
-	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	gormLogger "gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
 	"gorm.io/plugin/opentelemetry/tracing"
 )
 
-func Init(ctx context.Context, cfg *conf.MysqlConf, isDebug bool) error {
+func Init(ctx context.Context, cfg *conf.DbConf, isDebug bool) error {
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
 		db, err := initDb(ctx, cfg.Default, "default", isDebug)
@@ -29,19 +29,14 @@ func Init(ctx context.Context, cfg *conf.MysqlConf, isDebug bool) error {
 	})
 	return g.Wait()
 }
-func initDb(ctx context.Context, cfg conf.MysqlItemConf, name string, isDebug bool) (*gorm.DB, error) {
+func initDb(ctx context.Context, cfg conf.DbItemConf, name string, isDebug bool) (*gorm.DB, error) {
 	var l = logger.GormLogger
 	if isDebug {
 		l = l.LogMode(gormLogger.Info)
 	}
-	db, err := gorm.Open(mysql.New(mysql.Config{
-		DSN: fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=True&loc=Local",
-			cfg.UserName, cfg.Pwd, cfg.Host, cfg.Port, cfg.Database, cfg.Charset),
-		DefaultStringSize:         256,
-		DisableDatetimePrecision:  false,
-		DontSupportRenameIndex:    false,
-		DontSupportRenameColumn:   false,
-		SkipInitializeWithVersion: false,
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		DSN: fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable TimeZone=%s",
+			cfg.Host, cfg.UserName, cfg.Pwd, cfg.Database, cfg.Port, cfg.Tz),
 	}), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
 			TablePrefix:   cfg.Prefix,
@@ -55,11 +50,12 @@ func initDb(ctx context.Context, cfg conf.MysqlItemConf, name string, isDebug bo
 	}
 	err = db.Use(tracing.NewPlugin())
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("init %s db otel failed", name))
+		return nil, errors.Wrap(err, fmt.Sprintf("init %s db trace failed", name))
 	}
 	sqlDB, _ := db.DB()
 	sqlDB.SetMaxIdleConns(cfg.MaxIDleConn)
 	sqlDB.SetMaxOpenConns(cfg.MaxOpenConn)
+	sqlDB.SetConnMaxIdleTime(60 * time.Minute)
 	sqlDB.SetConnMaxLifetime(time.Duration(cfg.MaxLifeTimeMinutes) * time.Minute)
-	return db, sqlDB.PingContext(ctx)
+	return db, nil
 }

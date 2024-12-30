@@ -11,7 +11,7 @@ type (
 		PProf       PProfConf     `json:"pprof"`
 		Log         LogConf       `json:"log" required:"true"`
 		Redis       RedisConf     `json:"redis" required:"true"`
-		Mysql       MysqlConf     `json:"mysql" required:"true"`
+		Db          DbConf        `json:"db" required:"true"`
 		Otel        OtelConf      `json:"otel" required:"true"`
 	}
 	PyroscopeConf struct {
@@ -28,16 +28,17 @@ type (
 		Pool           int    `default:"100" json:"pool"`
 		CollectionName string `json:"collectionName"`
 	}
-	MysqlConf struct {
-		Default MysqlItemConf `json:"default" required:"true"`
+	DbConf struct {
+		Default DbItemConf `json:"default" required:"true"`
 	}
-	MysqlItemConf struct {
+	DbItemConf struct {
 		Host               string `json:"host" required:"true"`
 		Port               int    `json:"port" required:"true"`
 		UserName           string `json:"userName" required:"true"`
 		Pwd                string `json:"pwd" required:"true"`
 		Charset            string `json:"charset" default:"utf8mb4"`
 		Database           string `json:"database" required:"true"`
+		Tz                 string `required:"true" default:"Asia/Shanghai"`
 		Prefix             string `json:"prefix"`
 		MaxIDleConn        int    `json:"maxIDleConn" default:"10"`
 		MaxOpenConn        int    `json:"maxOpenConn" default:"100"`

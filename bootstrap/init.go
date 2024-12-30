@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"bufio"
 	"context"
+	"github.com/real-web-world/lol-api/services/pgsql"
 	"log"
 	"net/http"
 	"os"
@@ -26,7 +27,6 @@ import (
 	"github.com/real-web-world/lol-api/middleware"
 	"github.com/real-web-world/lol-api/routes"
 	"github.com/real-web-world/lol-api/services/logger"
-	"github.com/real-web-world/lol-api/services/mysql"
 	"github.com/real-web-world/lol-api/services/otel"
 	"github.com/real-web-world/lol-api/services/rds"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
@@ -136,7 +136,7 @@ func InitApp() (*gin.Engine, error) {
 	return e, g.Wait()
 }
 func initDB(ctx context.Context) error {
-	return mysql.Init(ctx, &global.Conf.Mysql, global.IsDevMode())
+	return pgsql.Init(ctx, &global.Conf.Db, global.IsDevMode())
 }
 func initLib(_ context.Context) error {
 	now.WeekStartDay = time.Monday
