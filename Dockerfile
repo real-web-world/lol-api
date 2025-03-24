@@ -1,5 +1,5 @@
-#FROM k-harbor.buffge.com/dk/library/golang:1.23.3-alpine as builder
-FROM k-harbor.buffge.com/dk/library/golang@sha256:865d971152033de755444aaa5f6cb8f91c8408020e91e1457205a1f93896d9b1 as builder
+#FROM k-harbor.buffge.com/dk/library/golang:1.24.1-alpine AS builder
+FROM k-harbor.buffge.com/dk/library/golang@sha256:43c094ad24b6ac0546c62193baeb3e6e49ce14d3250845d166c77c25f64b0386 AS builder
 
 ENV GOSUMDB=off
 ENV GOPROXY=https://goproxy.buffge.com,direct
@@ -29,7 +29,9 @@ RUN  --mount=type=cache,id=go-build-cache,target=/root/.cache/go-build,rw \
 
 #FROM k-harbor.buffge.com/dk/library/alpine:3.20.2
 FROM k-harbor.buffge.com/dk/library/alpine@sha256:b75b7690fb4afe6fdfabfd5f1d4c8a7b710749d555bedd448dc52e9ff0dc8cc7
-MAINTAINER buffge "admin@buffge.com"
+LABEL maintainer="buffge <admin@buffge.com>" \
+      version="1.0" \
+      description="hh-lol-prophet api"
 ARG commitMsg
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
     apk add --update --no-cache ca-certificates tzdata bash
